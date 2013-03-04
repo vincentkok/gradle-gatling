@@ -1,0 +1,42 @@
+apply plugin: 'scala'
+
+
+repositories {
+    mavenCentral()
+    maven {
+      url 'http://repository.excilys.com/content/groups/public'
+    }
+}
+
+dependencies {
+    testCompile 'com.excilys.ebi.gatling.highcharts:gatling-charts-highcharts:1.4.3'
+}
+
+task gatling(dependsOn: 'compileTestScala') << {
+  logger.lifecycle(" ---- Executing all Gatling scenarios from: ${sourceSets.test.output.classesDir} ----")
+  sourceSets.test.output.classesDir.eachFileRecurse { file ->
+    if (file.isFile()) {  
+      //Remove the full path, .class and replace / with a .
+      logger.debug("Tranformed file ${file} into")
+      def gatlingScenarioClass = (file.getPath() - (sourceSets.test.output.classesDir.getPath() + '/') - '.class').replace('/', '.')
+      logger.debug("Tranformed file ${file} into scenario class ${gatlingScenarioClass}")
+      javaexec {
+             // I do not use this so
+             main = 'com.excilys.ebi.gatling.app.Gatling'
+             classpath = sourceSets.test.output + sourceSets.test.runtimeClasspath
+             args  '-sbf', 
+                   sourceSets.test.output.classesDir,
+                   '-s',
+                   gatlingScenarioClass,
+                   '-rf',
+                   'build/reports/gatling'
+      }   
+    }
+  }
+  
+  logger.lifecycle(" ---- Done executing all Gatling scenarios ----")
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '1.4'
+}
