@@ -18,7 +18,9 @@ task gatling(dependsOn: 'compileTestScala') << {
     if (file.isFile()) {  
       //Remove the full path, .class and replace / with a .
       logger.debug("Tranformed file ${file} into")
-      def gatlingScenarioClass = (file.getPath() - (sourceSets.test.output.classesDir.getPath() + '/') - '.class').replace('/', '.')
+      def gatlingScenarioClass = (file.getPath() - (sourceSets.test.output.classesDir.getPath() + File.separator) - '.class')
+                                                      .replace(File.separator, '.')
+                                                      
       logger.debug("Tranformed file ${file} into scenario class ${gatlingScenarioClass}")
       javaexec {
              // I do not use this so
